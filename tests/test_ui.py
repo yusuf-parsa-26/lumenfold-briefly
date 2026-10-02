@@ -1,6 +1,7 @@
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import monotonic
@@ -202,6 +203,13 @@ class InterfaceTests(TestCase):
         with patch("briefly.app.QDesktopServices.openUrl", return_value=True) as open_url:
             self.window.cards[0].open_article()
         self.assertEqual(open_url.call_args.args[0].toString(), self.window.cards[0].article.url)
+
+    def test_article_refuses_unsafe_link(self):
+        self.populate()
+        self.window.cards[0].article = replace(self.window.cards[0].article, url="http://www.bbc.com/news/story")
+        with patch("briefly.app.QDesktopServices.openUrl") as open_url:
+            self.window.cards[0].open_article()
+        open_url.assert_not_called()
 
     def test_saved_topics_loaded_on_next_launch(self):
         self.populate()

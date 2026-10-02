@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QVBoxLayout, QWidget,
 )
 
-from .news import Article, Briefing, MAX_TOPIC_LENGTH, NewsError, NewsService, PUBLISHERS, SearchCancelled, canonical_url, validate_topics
+from .news import Article, Briefing, MAX_TOPIC_LENGTH, NewsError, NewsService, PUBLISHERS, SearchCancelled, canonical_url, safe_article_url, validate_topics
 from .storage import Store
 from .style import STYLESHEET, TEAL, TOPIC_COLORS
 from .widgets import BrandMark, Spinner, WorldArtwork, button, icon, label
@@ -158,6 +158,9 @@ class ArticleCard(QFrame):
         self.save_requested.emit(self.article, checked)
 
     def open_article(self):
+        if not safe_article_url(self.article.url, self.article.via_google):
+            self.open_failed.emit("This article link is not safe to open.")
+            return
         if not QDesktopServices.openUrl(QUrl(self.article.url)):
             self.open_failed.emit("Your browser could not open this article. Check your default browser settings.")
 

@@ -26,6 +26,7 @@ PER_TOPIC = 5
 MAX_AGE_DAYS = 30
 MAX_TOPIC_LENGTH = 160
 TIMEOUT = (4, 10)
+MAX_RESPONSE_BYTES = 5_000_000
 PUBLISHERS = {
     "reuters.com": "Reuters", "apnews.com": "Associated Press",
     "bbc.com": "BBC News", "bbc.co.uk": "BBC News",
@@ -139,11 +140,13 @@ def safe_article_url(url: str, via_google: bool = False) -> bool:
     if not isinstance(url, str):
         return False
     try:
+        if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in url):
+            return False
         parsed = urlsplit(url)
-        if parsed.scheme not in {"https", "http"} or parsed.username or parsed.password:
+        if parsed.scheme != "https" or parsed.username or parsed.password or parsed.port not in {None, 443}:
             return False
         if via_google:
-            return parsed.scheme == "https" and parsed.hostname == "news.google.com" and parsed.path.startswith("/rss/articles/")
+            return parsed.hostname == "news.google.com" and parsed.path.startswith("/rss/articles/")
         return publisher_for(url) is not None
     except ValueError:
         return False
@@ -342,18 +345,32 @@ class NewsService:
     @staticmethod
     def _get(url: str, *, params: dict, headers: dict | None = None) -> requests.Response:
         try:
-            response = requests.get(url, params=params, headers={"User-Agent": "Briefly/1.0 (desktop news reader)", **(headers or {})}, timeout=TIMEOUT)
+            response = requests.get(
+                url, params=params,
+                headers={"User-Agent": "Briefly/1.0 (desktop news reader)", **(headers or {})},
+                timeout=TIMEOUT, stream=True, allow_redirects=False,
+            )
+            try:
+                if response.status_code == 429:
+                    raise NewsError("The news service is busy or its request limit was reached. Try again later.")
+                if response.status_code in {401, 403}:
+                    raise NewsError("The news service denied this request. Check your API key or try again later.")
+                # A redirect could forward the optional API key to another host.
+                if 300 <= response.status_code < 400 or not response.ok:
+                    raise NewsError("The news service is temporarily unavailable. Try again shortly.")
+                chunks = []
+                size = 0
+                for chunk in response.iter_content(chunk_size=64 * 1024):
+                    size += len(chunk)
+                    if size > MAX_RESPONSE_BYTES:
+                        raise NewsError("The news service returned an unexpectedly large response.")
+                    chunks.append(chunk)
+                response._content = b"".join(chunks)
+                return response
+            finally:
+                response.close()
         except requests.RequestException:
             raise NewsError("Could not reach the news service. Check your internet connection and try again.") from None
-        if response.status_code == 429:
-            raise NewsError("The news service is busy or its request limit was reached. Try again later.")
-        if response.status_code in {401, 403}:
-            raise NewsError("The news service denied this request. Check your API key or try again later.")
-        if not response.ok:
-            raise NewsError("The news service is temporarily unavailable. Try again shortly.")
-        if len(response.content) > 5_000_000:
-            raise NewsError("The news service returned an unexpectedly large response.")
-        return response
 
     def _google(self, topic: str, *, domain: str | None = None) -> list[Article]:
         # Filter source URLs after retrieval. A long OR list of domains in the

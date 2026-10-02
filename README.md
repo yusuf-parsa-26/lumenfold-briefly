@@ -26,6 +26,13 @@ py -3 -m venv .venv
 
 After setup, you can double-click `run.bat` in the project folder to launch it again. `run.bat` expects the `.venv` created above. If the `py` launcher is unavailable, use `python` in the first command after confirming that `python --version` shows 3.10 or newer.
 
+If you already cloned Briefly, update the app and its dependencies from Command Prompt in the project folder:
+
+```bat
+git pull
+.venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
+```
+
 ### macOS or Linux (terminal)
 
 ```sh
@@ -38,6 +45,8 @@ python3 -m venv .venv
 ```
 
 For a ZIP download, skip the first two commands and run the rest from the extracted folder. On later launches, run `.venv/bin/python main.py`. Linux may require your distribution's graphical Qt/X11 or Wayland libraries. If `venv` is missing, install your distribution's Python `venv` package first.
+
+For an existing Git clone on macOS or Linux, run `git pull` and then `.venv/bin/python -m pip install --upgrade -r requirements.txt` from the project folder.
 
 If installation fails, check that the virtual environment uses Python 3.10+ and that pip can reach the package index. If the window does not appear, launch from a terminal to see the error; on Linux, ensure you are in a graphical desktop session. If stories do not load, check your connection and try another topic or refresh. The RSS service can return fewer than five suitable articles for a topic.
 
@@ -74,7 +83,7 @@ Topics and bookmarks persist locally in `.briefly/preferences.ini` inside the pr
 
 ## Where the articles come from
 
-By default, Briefly uses **Google News English RSS search**, with no API key. It checks the feed's publisher URL against an explicit allowlist that includes Reuters, AP, BBC News, The Guardian, NPR, PBS, and other established general or specialist publishers. Google links open via Google News and redirect to the publisher. RSS availability, index coverage, language classification, and redirects are controlled by the service and may change.
+By default, Briefly uses **Google News English RSS search**, with no API key. It checks the feed's publisher URL against an explicit allowlist that includes Reuters, AP, BBC News, The Guardian, NPR, PBS, and other established general or specialist publishers. Only HTTPS article links are opened. Google links open via Google News and redirect to the publisher; check the final destination in your browser. RSS availability, index coverage, language classification, and redirects are controlled by the service and may change.
 
 Regional English coverage includes [The Daily Star](https://www.thedailystar.net/about-us) and [The Business Standard](https://www.tbsnews.net/anniversary/seven-years-tbs-online-through-history-headlines-and-change-1521286), so local topics are not dependent only on international coverage. These links describe the publishers and their newsroom commitments; the same source, relevance, and recency checks apply.
 

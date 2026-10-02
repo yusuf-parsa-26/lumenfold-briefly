@@ -38,6 +38,10 @@ class TopicsAndSourcesTests(TestCase):
         self.assertFalse(safe_article_url("https://news.google.com.evil.example/rss/articles/abc", True))
         self.assertFalse(safe_article_url("javascript:alert(1)"))
         self.assertFalse(safe_article_url("https://news.google.com/search", True))
+        self.assertFalse(safe_article_url("http://www.bbc.com/news/story"))
+        self.assertFalse(safe_article_url("https://www.bbc.com/news/story\n"))
+        self.assertFalse(safe_article_url("https://www.bbc.com:8080/news/story"))
+        self.assertFalse(safe_article_url("https://www.bbc.com:invalid/news/story"))
 
     def test_tracking_parameters_are_deduplicated(self):
         self.assertEqual(canonical_url("https://bbc.com/news/story/?utm_source=x&article=1#section"), "https://bbc.com/news/story?article=1")
@@ -212,6 +216,42 @@ class ProviderTests(TestCase):
             NewsService._get("https://example.com", params={})
         self.assertNotIn("sensitive", str(caught.exception))
         self.assertEqual(get.call_args.kwargs["timeout"], (4, 10))
+        self.assertFalse(get.call_args.kwargs["allow_redirects"])
+        self.assertTrue(get.call_args.kwargs["stream"])
+
+    @patch("briefly.news.requests.get")
+    def test_redirect_does_not_forward_api_key(self, get):
+        response = requests.Response()
+        response.status_code = 302
+        response.raw = Mock()
+        response.headers["Location"] = "https://other.example/collect"
+        response.iter_content = Mock()
+        get.return_value = response
+        with self.assertRaises(NewsError):
+            NewsService._get("https://newsapi.org/v2/everything", params={}, headers={"X-Api-Key": "test-only-secret"})
+        self.assertFalse(get.call_args.kwargs["allow_redirects"])
+        response.iter_content.assert_not_called()
+
+    @patch("briefly.news.requests.get")
+    def test_response_size_is_limited_while_streaming(self, get):
+        response = requests.Response()
+        response.status_code = 200
+        response.raw = Mock()
+        response.iter_content = Mock(return_value=iter([b"x" * 3_000_000, b"y" * 2_000_001]))
+        get.return_value = response
+        with self.assertRaisesRegex(NewsError, "large response"):
+            NewsService._get("https://news.google.com/rss/search", params={})
+        response.iter_content.assert_called_once_with(chunk_size=64 * 1024)
+        response.raw.close.assert_called_once()
+
+    @patch("briefly.news.requests.get")
+    def test_response_body_is_available_after_streaming(self, get):
+        response = requests.Response()
+        response.status_code = 200
+        response.raw = Mock()
+        response.iter_content = Mock(return_value=iter([b"<rss>", b"</rss>"]))
+        get.return_value = response
+        self.assertEqual(NewsService._get("https://news.google.com/rss/search", params={}).content, b"<rss></rss>")
 
     @patch("briefly.news.requests.get")
     def test_rate_limit(self, get):
