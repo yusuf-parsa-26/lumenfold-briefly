@@ -6,22 +6,22 @@ A native **PySide6** news app: choose three interests and get up to **five Engli
 
 You need **Python 3.10 or newer**, an internet connection for fetching articles, and a desktop environment that can run PySide6. Git is needed if you clone the repository; alternatively, download and extract the repository ZIP from GitHub. No Google News API key or account is required.
 
-### Windows (PowerShell)
+### Windows (Command Prompt)
 
-Open PowerShell in the folder where you want to place the project. If you use Git, get the project first:
+Open Command Prompt in the folder where you want to place the project. If you use Git, get the project first:
 
-```powershell
+```bat
 git clone https://github.com/yusuf-parsa-26/lumenfold-briefly.git
 cd lumenfold-briefly
 ```
 
-If you downloaded the ZIP, extract it and open PowerShell in the extracted folder instead. Then create a virtual environment, install dependencies, and launch:
+After `cd lumenfold-briefly`, enter `cd` by itself to display the full folder location. If you downloaded the ZIP, extract it and open Command Prompt in the extracted folder instead. Then create a virtual environment, install dependencies, and launch:
 
-```powershell
+```bat
 py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe main.py
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe main.py
 ```
 
 After setup, you can double-click `run.bat` in the project folder to launch it again. `run.bat` expects the `.venv` created above. If the `py` launcher is unavailable, use `python` in the first command after confirming that `python --version` shows 3.10 or newer.
@@ -41,13 +41,13 @@ For a ZIP download, skip the first two commands and run the rest from the extrac
 
 If installation fails, check that the virtual environment uses Python 3.10+ and that pip can reach the package index. If the window does not appear, launch from a terminal to see the error; on Linux, ensure you are in a graphical desktop session. If stories do not load, check your connection and try another topic or refresh. The RSS service can return fewer than five suitable articles for a topic.
 
-To run the automated checks after setup, use:
+To run the automated checks after setup, use Command Prompt on Windows:
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```bat
+.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-On macOS or Linux, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`.
+On macOS or Linux, replace `.venv\Scripts\python.exe` with `.venv/bin/python`.
 
 ## Uninstall
 
@@ -78,11 +78,11 @@ By default, Briefly uses **Google News English RSS search**, with no API key. It
 
 Regional English coverage includes [The Daily Star](https://www.thedailystar.net/about-us) and [The Business Standard](https://www.tbsnews.net/anniversary/seven-years-tbs-online-through-history-headlines-and-change-1521286), so local topics are not dependent only on international coverage. These links describe the publishers and their newsroom commitments; the same source, relevance, and recency checks apply.
 
-An optional **NewsAPI** provider supplies direct article links and publisher descriptions. Set the key in your environment before launching:
+An optional **NewsAPI** provider supplies direct article links and publisher descriptions. In Windows Command Prompt, set the key for that session before launching:
 
-```powershell
-$env:NEWSAPI_KEY = "your-own-key"
-.\.venv\Scripts\python.exe main.py
+```bat
+set "NEWSAPI_KEY=your-own-key"
+.venv\Scripts\python.exe main.py
 ```
 
 The key is sent in the `X-Api-Key` header, never embedded in source code, request URLs, or interface errors. If NewsAPI fails or has too few matching candidates, RSS discovery is used when available. The interface identifies the services used. A `.env` file is not automatically loaded.
@@ -101,10 +101,10 @@ Selection proceeds round-robin across topics, with a maximum of five each. Canon
 
 ## Development and verification
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m tools.check_live
-.\.venv\Scripts\python.exe -m tools.preview
+```bat
+.venv\Scripts\python.exe -m unittest discover -s tests -v
+.venv\Scripts\python.exe -m tools.check_live
+.venv\Scripts\python.exe -m tools.preview
 ```
 
 Unit and Qt interaction tests run without internet; the live check makes real requests. Preview captures use explicitly labelled fixture headlines, not actual current news, and save to `artifacts/`. The app uses vector artwork and never downloads decorative or article images.
