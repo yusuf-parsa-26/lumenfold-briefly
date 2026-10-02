@@ -110,4 +110,3 @@ Selection proceeds round-robin across topics, with a maximum of five each. Canon
 Unit and Qt interaction tests run without internet; the live check makes real requests. Preview captures use explicitly labelled fixture headlines, not actual current news, and save to `artifacts/`. The app uses vector artwork and never downloads decorative or article images.
 
 The modules separate provider/ranking logic (`briefly/news.py`), the native interface (`briefly/app.py`), visual components/styles, and local preferences. Network errors are handled without exposing credentials.
-
