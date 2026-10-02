@@ -49,6 +49,19 @@ To run the automated checks after setup, use:
 
 On macOS or Linux, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`.
 
+## Uninstall
+
+Close Briefly, then delete the `lumenfold-briefly` folder (or the extracted ZIP folder) in your file manager. The dependencies were installed only in that folder's `.venv`, so deleting the folder removes the app and its Python packages. There is no separate uninstaller or system-wide app entry.
+
+The folder also contains `.briefly/preferences.ini`, which holds your saved topics and bookmarks. Copy that file somewhere else first if you want to keep them. If you cloned the repository and prefer Command Prompt, run the following **from inside the project folder** after closing the app:
+
+```bat
+cd ..
+rmdir /s /q lumenfold-briefly
+```
+
+Check the folder name before running the deletion command. If you used a ZIP, substitute its extracted folder name. Python and Git are separate programs; removing this folder does not uninstall them.
+
 ## Your briefing
 
 - Type any three different topics in the three text boxes. There is no preset topic menu. Names, places, teams, companies, and specific interests are welcome—for example, `Bangladesh economy`, `electric vehicles`, or `quantum computing`. Press **Build my briefing** or **Ctrl+Enter**.
@@ -97,3 +110,4 @@ Selection proceeds round-robin across topics, with a maximum of five each. Canon
 Unit and Qt interaction tests run without internet; the live check makes real requests. Preview captures use explicitly labelled fixture headlines, not actual current news, and save to `artifacts/`. The app uses vector artwork and never downloads decorative or article images.
 
 The modules separate provider/ranking logic (`briefly/news.py`), the native interface (`briefly/app.py`), visual components/styles, and local preferences. Network errors are handled without exposing credentials.
+
